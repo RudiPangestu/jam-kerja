@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jendela Emas — Jadwal Free Tim</title>
@@ -194,15 +193,29 @@ function renderGrid(){
   html+='</tr>';
   grid.innerHTML=html;
 
-  const out=document.getElementById('ranges');
-  const chips=[]; let s=null;
-  allFree.forEach((f,c)=>{
-    if(f&&s===null) s=c;
-    if((!f||c===HOURS.length-1)&&s!==null){
-      const e=(f&&c===HOURS.length-1)?c:c-1;
-      chips.push(fmt(HOURS[s])+'–'+fmt(HOURS[e]+1)); s=null;
-    }
+  // hasil presisi menit: gabungkan semua jam kerja, sisanya = waktu semua free
+  const DAY_S=START*60, DAY_E=END*60;
+  const busyIv=[];
+  state.people.forEach(p=>p.ranges.forEach(r=>{
+    if(!r.from||!r.to) return;
+    const f=Math.max(toMin(r.from),DAY_S), t=Math.min(toMin(r.to),DAY_E);
+    if(t>f) busyIv.push([f,t]);
+  }));
+  busyIv.sort((a,b)=>a[0]-b[0]);
+  const merged=[];
+  busyIv.forEach(iv=>{
+    const last=merged[merged.length-1];
+    if(last && iv[0]<=last[1]) last[1]=Math.max(last[1],iv[1]);
+    else merged.push([iv[0],iv[1]]);
   });
+  const fmtMin=m=>String(Math.floor(m/60)).padStart(2,'0')+'.'+String(m%60).padStart(2,'0');
+  const chips=[]; let cur=DAY_S;
+  merged.forEach(iv=>{
+    if(iv[0]>cur) chips.push(fmtMin(cur)+'–'+fmtMin(iv[0]));
+    cur=Math.max(cur,iv[1]);
+  });
+  if(cur<DAY_E) chips.push(fmtMin(cur)+'–'+fmtMin(DAY_E));
+  const out=document.getElementById('ranges');
   out.innerHTML = chips.length
     ? chips.map(r=>'<span class="chip">'+r+'</span>').join('')
     : '<span class="none">Belum ada jam di mana semua '+state.people.length+' orang free.</span>';
