@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jendela Emas — Jadwal Free Tim</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F6F1; --ink:#1C2B26;
+    --busy:#33465C; --free:#DDE9D4;
+    --gold:#F2B63C; --gold-soft:#FBEECB;
+    --line:#C9D2C4; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;padding:20px}
+  h1{font-family:'Space Grotesk',system-ui,sans-serif;font-size:22px;font-weight:700;letter-spacing:-.02em}
+  h2{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;color:#3A4A40}
+  .sub{color:#5C6B5F;margin-top:2px;font-size:13px}
+  header{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+  .legend{display:flex;gap:14px;align-items:center;font-size:12.5px;color:#4A594E}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:14px;height:14px;border-radius:4px;display:inline-block}
+  .sw.b{background:var(--busy)} .sw.f{background:var(--free);border:1px solid var(--line)} .sw.g{background:var(--gold)}
+
+  /* ---- panel input jam kerja ---- */
+  .input-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .person{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed #E2E8DD}
+  .person:last-child{border-bottom:none}
+  .person input.nm{
+    width:130px;border:1px solid var(--line);background:#FBFCFA;font:inherit;font-weight:600;
+    padding:7px 10px;border-radius:8px;
+  }
+  .person input.nm:focus{outline:2px solid var(--gold)}
+  .range{display:inline-flex;align-items:center;gap:5px;background:#F0F3EC;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+  .range input[type=time]{border:none;background:transparent;font:inherit;font-size:13px;padding:2px}
+  .range input[type=time]:focus{outline:2px solid var(--gold);border-radius:4px}
+  .range .dash{color:#7A8A7D}
+  .range button.x{border:none;background:none;color:#9AA79C;cursor:pointer;font-size:15px;padding:0 2px;line-height:1}
+  .range button.x:hover{color:#C0392B}
+  button.addRange{
+    font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:#3A4A40;
+    background:none;border:1.5px dashed var(--line);border-radius:8px;padding:5px 10px;
+  }
+  button.addRange:hover{border-color:var(--ink)}
+  .noRange{font-size:12.5px;color:#9AA79C;font-style:italic}
+
+  /* ---- grid ---- */
+  .grid-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  table{border-collapse:separate;border-spacing:3px;min-width:900px;width:100%}
+  th{font-weight:600;font-size:11.5px;color:#5C6B5F;padding:2px 4px;text-align:center;font-variant-numeric:tabular-nums}
+  th.name-h{text-align:left;font-size:12px}
+  td.name{min-width:110px;padding-right:8px;font-weight:600;font-size:13px}
+  td.slot{height:28px;min-width:34px;border-radius:6px;background:var(--free);border:1px solid var(--line)}
+  td.slot.busy{background:var(--busy);border-color:var(--busy)}
+  td.slot.golden{box-shadow:0 0 0 2px var(--gold) inset}
+  tr.summary td.sum{height:32px;border-radius:6px;text-align:center;font-size:11px;font-weight:600;color:#7A8A7D;background:#EEF2EA;font-variant-numeric:tabular-nums}
+  tr.summary td.sum.all{background:var(--gold);color:#4A3608;box-shadow:0 2px 10px rgba(242,182,60,.45)}
+  tr.summary td.label{font-size:12px;font-weight:600;color:#5C6B5F;padding-right:8px}
+
+  .result{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .result .eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#8A6A1E}
+  .result .ranges{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;margin-top:4px}
+  .result .ranges .none{font-size:16px;font-weight:500;color:#5C6B5F}
+  .chip{display:inline-block;background:var(--gold-soft);border:1.5px solid var(--gold);border-radius:10px;padding:4px 14px;margin-right:8px;margin-top:4px}
+
+  .actions{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  button.act{font:inherit;font-weight:600;font-size:13px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:8px}
+  button.act:hover{border-color:var(--ink)}
+  button.act.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  textarea{width:100%;margin-top:8px;font-family:monospace;font-size:12px;padding:8px;border:1px solid var(--line);border-radius:8px;min-height:60px;display:none}
+  textarea.show{display:block}
+  .hint{font-size:12px;color:#7A8A7D;margin-top:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Jendela Emas</h1>
+    <div class="sub">Isi jam kerja tiap orang di bawah — tabel dan hasilnya berubah otomatis.</div>
+  </div>
+  <div class="legend">
+    <span><i class="sw b"></i>Kerja</span>
+    <span><i class="sw f"></i>Free</span>
+    <span><i class="sw g"></i>Semua free</span>
+  </div>
+</header>
+
+<div class="input-card">
+  <h2>Jam kerja</h2>
+  <div id="people"></div>
+</div>
+
+<div class="grid-wrap">
+  <table id="grid"></table>
+</div>
+
+<div class="result">
+  <div class="eyebrow">Kapan semua orang free</div>
+  <div class="ranges" id="ranges"></div>
+</div>
+
+<div class="actions">
+  <button class="act primary" id="btnReset">Reset semua</button>
+  <button class="act" id="btnExport">Salin data</button>
+  <button class="act" id="btnImport">Tempel data</button>
+</div>
+<textarea id="io" placeholder="Tempel kode data di sini lalu klik 'Tempel data' lagi"></textarea>
+<p class="hint">Data tersimpan otomatis di browser ini. Untuk gabungkan jadwal dari orang lain: minta mereka klik “Salin data”, lalu kamu klik “Tempel data”.</p>
+
+<script>
+const START=7, END=23;                       // grid 07.00–23.00
+const HOURS=[]; for(let h=START;h<END;h++) HOURS.push(h);
+const N=10;
+
+function defaultState(){
+  return { people: Array.from({length:N},(_,i)=>({ name:'Orang '+(i+1), ranges:[] })) };
+}
+function save(){ try{ localStorage.setItem('jendelaEmas2', JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{ const raw=localStorage.getItem('jendelaEmas2');
+    if(raw){ const s=JSON.parse(raw); if(s&&s.people) return s; } }catch(e){}
+  return defaultState();
+}
+let state=load();
+
+const toMin = t => { const [h,m]=t.split(':').map(Number); return h*60+(m||0); };
+const fmt   = h => String(h).padStart(2,'0')+'.00';
+
+// jam h dianggap "kerja" jika ada rentang yang beririsan dengan [h.00, h+1.00)
+function busyAt(p,h){
+  return p.ranges.some(r=>{
+    if(!r.from||!r.to) return false;
+    const f=toMin(r.from), t=toMin(r.to);
+    if(t<=f) return false;                  // rentang tidak valid / lewat tengah malam: abaikan
+    return f < (h+1)*60 && t > h*60;
+  });
+}
+
+/* ---------- panel input ---------- */
+const peopleEl=document.getElementById('people');
+function renderInputs(){
+  peopleEl.innerHTML = state.people.map((p,i)=>{
+    const ranges = p.ranges.map((r,j)=>`
+      <span class="range">
+        <input type="time" step="900" value="${r.from||''}" data-i="${i}" data-j="${j}" data-k="from">
+        <span class="dash">–</span>
+        <input type="time" step="900" value="${r.to||''}" data-i="${i}" data-j="${j}" data-k="to">
+        <button class="x" data-del="${i}:${j}" title="Hapus rentang">×</button>
+      </span>`).join('');
+    return `<div class="person">
+      <input class="nm" value="${p.name.replace(/"/g,'&quot;')}" data-nm="${i}">
+      ${ranges || '<span class="noRange">belum ada jam kerja — dianggap free seharian</span>'}
+      <button class="addRange" data-add="${i}">+ jam kerja</button>
+    </div>`;
+  }).join('');
+}
+peopleEl.addEventListener('click',e=>{
+  const add=e.target.closest('[data-add]');
+  if(add){ state.people[+add.dataset.add].ranges.push({from:'09:00',to:'17:00'}); save(); renderAll(); return; }
+  const del=e.target.closest('[data-del]');
+  if(del){ const [i,j]=del.dataset.del.split(':').map(Number);
+    state.people[i].ranges.splice(j,1); save(); renderAll(); }
+});
+peopleEl.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.nm!==undefined){ state.people[+t.dataset.nm].name=t.value; save(); renderGrid(); return; }
+  if(t.dataset.k){ state.people[+t.dataset.i].ranges[+t.dataset.j][t.dataset.k]=t.value; save(); renderGrid(); }
+});
+
+/* ---------- grid + hasil ---------- */
+const grid=document.getElementById('grid');
+function renderGrid(){
+  const busy = state.people.map(p=>HOURS.map(h=>busyAt(p,h)));
+  const allFree = HOURS.map((_,c)=> busy.every(row=>!row[c]));
+
+  let html='<tr><th class="name-h">Nama</th>';
+  HOURS.forEach(h=> html+='<th>'+fmt(h)+'</th>');
+  html+='</tr>';
+  state.people.forEach((p,r)=>{
+    html+='<tr><td class="name">'+p.name.replace(/</g,'&lt;')+'</td>';
+    HOURS.forEach((_,c)=>{
+      html+='<td class="slot'+(busy[r][c]?' busy':'')+(allFree[c]?' golden':'')+'"></td>';
+    });
+    html+='</tr>';
+  });
+  html+='<tr class="summary"><td class="label">Free bersama</td>';
+  HOURS.forEach((_,c)=>{
+    const free=busy.filter(row=>!row[c]).length;
+    html+='<td class="sum'+(allFree[c]?' all':'')+'">'+free+'/'+state.people.length+'</td>';
+  });
+  html+='</tr>';
+  grid.innerHTML=html;
+
+  const out=document.getElementById('ranges');
+  const chips=[]; let s=null;
+  allFree.forEach((f,c)=>{
+    if(f&&s===null) s=c;
+    if((!f||c===HOURS.length-1)&&s!==null){
+      const e=(f&&c===HOURS.length-1)?c:c-1;
+      chips.push(fmt(HOURS[s])+'–'+fmt(HOURS[e]+1)); s=null;
+    }
+  });
+  out.innerHTML = chips.length
+    ? chips.map(r=>'<span class="chip">'+r+'</span>').join('')
+    : '<span class="none">Belum ada jam di mana semua '+state.people.length+' orang free.</span>';
+}
+function renderAll(){ renderInputs(); renderGrid(); }
+
+/* ---------- tombol ---------- */
+document.getElementById('btnReset').onclick=()=>{
+  if(confirm('Hapus semua jam kerja?')){ state=defaultState(); save(); renderAll(); }
+};
+const io=document.getElementById('io');
+document.getElementById('btnExport').onclick=()=>{
+  io.classList.add('show');
+  io.value=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  io.select(); try{ document.execCommand('copy'); }catch(e){}
+};
+document.getElementById('btnImport').onclick=()=>{
+  if(!io.classList.contains('show')){ io.classList.add('show'); io.value=''; io.focus(); return; }
+  try{
+    const s=JSON.parse(decodeURIComponent(escape(atob(io.value.trim()))));
+    if(!s.people) throw 0;
+    s.people.forEach((p,i)=>{
+      if(!state.people[i]) return;
+      if(p.name && !/^Orang \d+$/.test(p.name)) state.people[i].name=p.name;
+      (p.ranges||[]).forEach(r=>{
+        const dup=state.people[i].ranges.some(x=>x.from===r.from&&x.to===r.to);
+        if(!dup) state.people[i].ranges.push(r);
+      });
+    });
+    save(); renderAll(); io.classList.remove('show');
+  }catch(e){ alert('Kode data tidak valid.'); }
+};
+
+renderAll();
+</script>
+</body>
+</html>
